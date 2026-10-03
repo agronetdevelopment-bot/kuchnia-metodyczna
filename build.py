@@ -10,7 +10,7 @@ ROOT = Path(__file__).parent
 
 # --- Links (update YouTube / Instagram when you have them) -------------------
 SPOTIFY = "https://open.spotify.com/show/78JCaoAEl9yniNS0A4y9NV"
-YOUTUBE = "#"    # TODO: link to YouTube channel
+YOUTUBE = "https://www.youtube.com/@KuchniaMetodyczna"
 INSTAGRAM = "#"  # TODO: link to Instagram profile
 
 # --- Icons -------------------------------------------------------------------
@@ -108,7 +108,7 @@ def page(filename, title, description, body):
 <meta name="description" content="{description}">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{description}">
-<meta property="og:image" content="img/hero.webp">
+<meta property="og:image" content="img/hero-2.webp">
 <meta name="theme-color" content="#f7a823">
 <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="fonts/anton-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -129,7 +129,7 @@ def page(filename, title, description, body):
 
 # ============================ HOME ===========================================
 features = [
-    ("index.html#podcast", "mic", "Podcast", "Inspirujące rozmowy<br>o nauczaniu języków."),
+    ("index.html#odcinki", "mic", "Podcast", "Inspirujące rozmowy<br>o nauczaniu języków."),
     ("o-nas.html", "users", "O nas", "Dwie nauczycielki,<br>jedna wspólna pasja."),
     ("szkolenia.html", "cap", "Szkolenia", "Praktyczna wiedza<br>dla nauczycieli."),
 ]
@@ -150,7 +150,7 @@ home = f'''<section class="hero" id="podcast">
       <a class="btn" href="{SPOTIFY}" target="_blank" rel="noopener">{PLAY}SŁUCHAJ PODCASTU</a>
     </div>
     <div class="hero-photo">
-      <img src="img/hero.webp" width="1528" height="1272" alt="Justyna Deczewska i Magdalena Ziółek-Wojnar w koszulkach z logo Kuchni Metodycznej">
+      <img src="img/hero-2.webp" width="1528" height="1272" alt="Justyna Deczewska i Magdalena Ziółek-Wojnar w koszulkach z logo Kuchni Metodycznej">
     </div>
   </div>
   <svg class="wave" viewBox="0 0 1440 110" preserveAspectRatio="none" aria-hidden="true">
@@ -173,9 +173,56 @@ home = f'''<section class="hero" id="podcast">
   </div>
 </section>'''
 
+
+# (nr, ikona, tytuł, czas, opis, youtube_id, spotify_id)  — najnowszy pierwszy
+EPISODES = [
+ (17,"group","Makaron z truskawkami, czyli co oczywiste nie wszędzie jest oczywiste","39 min","Jak odnaleźć się w klasie pełnej różnorodności kulturowej i reagować na odmienne standardy zachowania z wyrozumiałością.","eseFH1d0psE","0WUx5VPDo0rgbmnoCVqX7N"),
+ (16,"sprout","4K i umami, czyli kompetencje przyszłości w praktyce","35 min","Bez PR-u i marketingu rozbrajamy kompetencje 4K i przenosimy je z teorii raportów prosto do sali lekcyjnej.","Pn9tM8Wm6pE","1xjYu7evVSlZBgbs6SWhPj"),
+ (15,"board","Sztuka prezentacji: składniki, proporcje, forma","47 min","Czy Twoje prezentacje to lekka przystawka, czy ciężkostrawny bufet? Rozkładamy wystąpienia publiczne na składniki.","YfkW8BWVj3E","6N3b2Ygv6iDMCOr4ScDGwv"),
+ (14,"brain","Spiżarnia pamięci – o smaku języka i sile skojarzeń","35 min","Dlaczego jedne rzeczy zostają z nami na długo, a inne znikają po kilku minutach? Co wspiera zapamiętywanie, a co je sabotuje?","NB-zWYIrK_k","5ZfxzT9vwwLdZcZTUFi48j"),
+ (13,"chat","Języki na widelcu: francuski","55 min","Wyruszamy w podróż po języku i kulturze francuskiej. Przewodniczką jest Dominika Wierzbowicz.","WWIrYc7LeiE","1lglM1pAnTlncq62dGpRC6"),
+ (12,"bulb","Kreatywność – magiczna przyprawa","29 min","Rozmawiamy o kreatywności w nauczaniu. Dlaczego bez niej lekcje tracą smak i jak obudzić ją w sobie i w uczniach?","R1mCt5if1lE","4XCnCG2ydZHOEZNF1XeTCO"),
+ (11,"brain","Neuroróżnorodność jak pudełko czekoladek","41 min","Nigdy nie wiesz, na co trafisz, ale każda różnorodność ma swój sens.","RVM3fibtQ20","1KG4sMYWdosWnRBfNJagWX"),
+ (10,"robot","Zupa na gwoździu czy dieta pudełkowa?","26 min","Sztuczna inteligencja w edukacji: jak AI może wspierać nauczyciela w codziennej pracy?","Du3HLusw8s8","72Shd92SSuwQFT0en2GAfS"),
+ (9,"chat","Języki na widelcu: włoski","39 min","Podróż po języku i kuchni włoskiej. Gościem jest Damian Rogala, wykładowca języka włoskiego.","kBpvJoBKDVE","2wZE1MxjVi5XoTIXEMt8rt"),
+ (8,"chat","Między szczyptą a przesadą. O języku-pośredniku","26 min","Język pośrednik w nauczaniu języków obcych: kiedy pomaga, a kiedy przeszkadza?","vk_BCNAhNF8","2SVSZUT6Exf9a55D8r6ESS"),
+ (7,"board","Każdy ma swój przepis: rozmowa o podręcznikach","23 min","Zaglądamy za kulisy pracy nad podręcznikiem: kto ma największy wpływ na jego kształt i na co trzeba zwrócić uwagę?","olClULWyA5w","37R1mh3MmEd3iY5iBuuEDF"),
+ (6,"chat","Języki na widelcu: niemiecki","27 min","Kolejny odcinek cyklu „Języki na widelcu”: język niemiecki, bez uprzedzeń, z humorem.","R80maleNjnY","0z1FGmsQUjc6DNuipNhqYu"),
+ (5,"bulb","Ocenianie al dente. Jak nie rozgotować potencjału ucznia?","31 min","Czy ocena to pomoc, czy presja? Rozmawiamy o ocenianiu.","7zL6GsYneaE","34ZKxLkCXgVf94Iw0n5n2C"),
+ (4,"board","Gotuj z uczniami! Przepis na lekcję odwróconą","25 min","Bierzemy na warsztat lekcję odwróconą: uczniowie uczą się samodzielnie przed zajęciami, a na lekcji działają.","XhntkUxhw0w","0Asg9w17WiLtJvx5XvpiEC"),
+ (3,"chat","Języki na widelcu: hiszpański","21 min","Początek serii „Języki na widelcu”. Na pierwszy ogień idzie hiszpański.","bnI7ep7Nf68","1I5xL4GGI3wrfRdCtdICLU"),
+ (2,"pencil","Praca domowa a kuchnia alzacka","28 min","Jaki związek ma praca domowa z kuchnią alzacką? Czy w ogóle ma sens i jaka powinna być?","YtRDT_m-6yI","1CTgvhEFWkZIiYADvqASt8"),
+ (1,"brain","Co ma wspólnego nauczyciel z linoskoczkiem?","34 min","Jak znaleźć balans pomiędzy nowoczesnym i tradycyjnym, efektywnym i efektownym na lekcji języka obcego?","GXDWUULLO8A","1kehYw6SmsDmwiJtb6zLEl"),
+]
+SP_ICON = '<svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="13" fill="currentColor"/><path d="M7 10.5c4.8-1.5 10-1 14 1.3M8 14.4c4-1.1 8.2-.7 11.4 1.1M8.8 18c3.2-.8 6.4-.5 9 .9" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>'
+YT_ICON = '<svg viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="5" width="26" height="18" rx="5" fill="currentColor"/><path d="M11.5 9.5v9l7.5-4.5z" fill="#fff"/></svg>'
+
+def episode_card(ep, latest=False):
+    n, icon, title, dur, desc, yt, sp = ep
+    links = (f'<a class="ep-link" href="https://open.spotify.com/episode/{sp}" target="_blank" rel="noopener" aria-label="Słuchaj odcinka {n} na Spotify">{SP_ICON}Spotify</a>'
+             f'<a class="ep-link" href="https://www.youtube.com/watch?v={yt}" target="_blank" rel="noopener" aria-label="Oglądaj odcinek {n} na YouTube">{YT_ICON}YouTube</a>')
+    cls = "topic episode latest" if latest else "topic episode"
+    badge = '<span class="ep-new">Najnowszy odcinek</span>' if latest else ''
+    return f'''      <article class="{cls}">
+        <div class="topic-head"><span class="num">{n}</span><div class="icon-circle">{I[icon]}</div><h3>{title}</h3></div>
+        <div class="ep-body">{badge}<p>{desc}</p><div class="ep-meta"><span class="ep-dur">{dur}</span><div class="ep-links">{links}</div></div></div>
+      </article>'''
+
+episode_html = "\n".join(episode_card(e, latest=(i == 0)) for i, e in enumerate(EPISODES))
+
+episodes = f'''<section class="topics episodes" id="odcinki">
+  <div class="dots" style="right:-20px;top:40px;width:140px;height:240px"></div>
+  <div class="wrap">
+    <h2 class="section-title">Odcinki <span class="accent">podcastu</span>{burst()}</h2>
+    <div class="topic-grid">
+{episode_html}
+    </div>
+  </div>
+</section>'''
+
 page("index.html", "Kuchnia Metodyczna — podcast o nauczaniu języków",
      "Kuchnia Metodyczna: podcast i szkolenia dla nauczycieli języków obcych. Doświadczenie, wiedza i praktyka dla lepszych lekcji językowych.",
-     home)
+     home + "\n\n" + episodes)
 
 # ============================ SZKOLENIA ======================================
 topics = [

@@ -189,6 +189,29 @@ mark, .hl {
 .topic.wide h3 { font-size: 18px; margin: 0; }
 .cta-band { margin-top: 40px; text-align: center; }
 
+/* ---------- Odcinki podcastu ---------- */
+.episodes { padding-top: 10px; scroll-margin-top: 90px; }
+.episode { display: flex; flex-direction: column; }
+.episode .ep-body { display: flex; flex-direction: column; flex: 1; }
+.episode .ep-body p { flex: 1; }
+.ep-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.ep-dur { font-family: var(--font-label); font-size: 14px; color: var(--ink-soft); letter-spacing: .03em; }
+.ep-links { display: flex; gap: 8px; }
+.ep-link {
+  display: inline-flex; align-items: center; gap: 7px; text-decoration: none;
+  font-family: var(--font-label); font-weight: 600; font-size: 14px; letter-spacing: .02em;
+  background: var(--orange); color: var(--ink); padding: 8px 14px; border-radius: 999px;
+  box-shadow: 0 3px 10px rgba(247,168,35,.3); transition: transform .15s, box-shadow .15s;
+}
+.ep-link svg { width: 18px; height: 18px; flex: none; }
+.ep-link:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(247,168,35,.4); }
+.ep-new { display: inline-block; font-family: var(--font-label); font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; background: var(--orange-soft); color: var(--ink); padding: 3px 10px; border-radius: 999px; margin-bottom: 8px; align-self: flex-start; }
+.episode.latest { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr auto; gap: 8px 24px; align-items: center; padding: 22px 26px; }
+.episode.latest .topic-head { display: grid; grid-template-columns: auto auto 1fr; margin: 0; align-items: center; gap: 14px; min-width: 0; }
+.episode.latest h3 { font-size: 21px; }
+.episode.latest .ep-body { grid-column: 2 / 4; }
+.episode.latest .ep-body p { flex: none; font-size: 16.5px; }
+
 /* ---------- O nas ---------- */
 .about { position: relative; overflow: hidden; background: linear-gradient(180deg, #fbf2e3, var(--cream) 30%); padding-bottom: 60px; }
 .about-head { position: relative; text-align: center; padding-top: 30px; display: flow-root; }
@@ -289,6 +312,12 @@ mark, .hl {
   .topic h3 { grid-column: 3; }
   .topic p { grid-column: 3; font-size: 14.5px; margin-top: 6px; }
   .topic.wide { grid-template-columns: auto auto 1fr; }
+  .episode, .episode.latest { grid-template-columns: auto auto 1fr; gap: 0 12px; padding: 18px; }
+  .episode .ep-body, .episode.latest .ep-body { grid-column: 3; display: block; }
+  .episode.latest .topic-head { display: contents; }
+  .episode.latest h3 { font-size: 15.5px; }
+  .episode.latest .ep-body p { font-size: 14.5px; }
+  .ep-meta { margin-top: 12px; }
 
   .about-head { text-align: left; }
   .about-head .burst { left: auto; right: -70px; transform: none; }
