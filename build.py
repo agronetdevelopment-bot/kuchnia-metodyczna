@@ -132,13 +132,12 @@ features = [
     ("index.html#podcast", "mic", "Podcast", "Inspirujące rozmowy<br>o nauczaniu języków."),
     ("o-nas.html", "users", "O nas", "Dwie nauczycielki,<br>jedna wspólna pasja."),
     ("szkolenia.html", "cap", "Szkolenia", "Praktyczna wiedza<br>dla nauczycieli."),
-    ("szkolenia.html#tematy", "bulb", "Lepsze lekcje", "Pomysły, narzędzia<br>i sprawdzone rozwiązania."),
 ]
 feat_items = "\n".join(
     f'      <li><a href="{h}"><div class="icon-circle">{I[i]}</div><h3>{t.upper()}</h3><p>{d}</p></a></li>'
     for h, i, t, d in features)
 tiles = "\n".join(
-    f'      <a class="tile" href="{h}">{I[i]}<span>{t.upper()}</span></a>' for h, i, t, _ in features[:3])
+    f'      <a class="tile" href="{h}">{I[i]}<span>{t.upper()}</span></a>' for h, i, t, _ in features)
 
 home = f'''<section class="hero" id="podcast">
   <div class="dots" style="left:-30px;top:40px;width:180px;height:260px"></div>
@@ -149,10 +148,9 @@ home = f'''<section class="hero" id="podcast">
       <h1 class="display"><span class="accent">Kuchnia</span><span class="ink">Metodyczna</span></h1>
       <p class="lead">Tu łączymy doświadczenie, wiedzę i&nbsp;praktykę, żeby tworzyć lepsze lekcje językowe.</p>
       <a class="btn" href="{SPOTIFY}" target="_blank" rel="noopener">{PLAY}SŁUCHAJ PODCASTU</a>
-      <svg class="hero-arrow" viewBox="0 0 110 90" aria-hidden="true"><path d="M6 6c4 40 40 66 92 64M84 58l14 12-15 9"/></svg>
     </div>
     <div class="hero-photo">
-      <img src="img/hero.webp" width="1104" height="1260" alt="Justyna Deczewska i Magdalena Ziółek-Wojnar w koszulkach z logo Kuchni Metodycznej">
+      <img src="img/hero.webp" width="1528" height="1272" alt="Justyna Deczewska i Magdalena Ziółek-Wojnar w koszulkach z logo Kuchni Metodycznej">
     </div>
   </div>
   <svg class="wave" viewBox="0 0 1440 110" preserveAspectRatio="none" aria-hidden="true">

@@ -110,24 +110,22 @@ mark, .hl {
 .btn svg { width: 24px; height: 24px; }
 
 /* ---------- Hero (home) ---------- */
-.hero { position: relative; overflow: hidden; background: linear-gradient(180deg, #fbf2e3 0%, var(--cream) 70%); }
-.hero .wrap { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.02fr); align-items: center; min-height: 640px; }
-.hero-text { position: relative; padding: 60px 0 90px; z-index: 2; }
-.hero-text .display { font-size: clamp(64px, 8.4vw, 116px); }
-.hero-text .burst { left: min(410px, 72%); top: 36px; }
-.hero-arrow { position: absolute; right: -40px; bottom: 120px; width: 110px; height: 90px; }
-.hero-arrow path { fill: none; stroke: var(--ink); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
-.hero-photo { position: relative; align-self: end; margin-right: -40px; }
-.hero-photo img { width: 100%; height: auto; position: relative; z-index: 1;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 7%), linear-gradient(to left, transparent 0, #000 8%);
-  -webkit-mask-composite: source-in; mask-image: linear-gradient(to bottom, transparent 0, #000 7%), linear-gradient(to left, transparent 0, #000 8%); mask-composite: intersect; }
-.hero .wave { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 110px; z-index: 3; }
+.hero { --photo-w: min(58vw, 920px); position: relative; overflow: hidden; background: linear-gradient(180deg, #fcf7ef 0, #fcf7ef 6%, #fdfbf8 22%, #fdfaf5 100%);
+  min-height: calc(var(--photo-w) * 0.8324); display: flex; align-items: center; }
+.hero > .wrap { width: min(var(--wrap), 100% - 32px); }
+.hero .wrap { position: static; display: block; }
+.hero-text { position: relative; padding: 40px 0 90px; z-index: 2; max-width: 640px; }
+.hero-text .display { font-size: clamp(64px, 8.2vw, 116px); }
+.hero-text .burst { display: none; }
+.hero-photo { position: absolute; right: 0; bottom: 0; width: var(--photo-w); z-index: 1; margin: 0; }
+.hero-photo img { width: 100%; height: auto; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 2.5%); mask-image: linear-gradient(90deg, transparent 0, #000 2.5%); }
+.hero .wave { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 56px; z-index: 3; }
 .hero .wave path { fill: var(--cream); }
 .hero .wave .line { fill: none; stroke: var(--orange); stroke-width: 8; opacity: .85; }
 
 /* ---------- Feature row ---------- */
 .features { position: relative; padding: 10px 0 40px; }
-.features ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; text-align: center; }
+.features ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; text-align: center; }
 .features a { text-decoration: none; display: block; padding: 10px; border-radius: var(--radius); transition: transform .2s; }
 .features a:hover { transform: translateY(-4px); }
 .icon-circle { width: 86px; height: 86px; border-radius: 50%; background: var(--orange-pale); display: grid; place-items: center; margin: 0 auto 16px; box-shadow: inset 0 0 0 1px rgba(247,168,35,.15); }
@@ -248,17 +246,17 @@ mark, .hl {
   .site-header.open .main-nav a { text-align: center; padding: 14px; font-size: 18px; }
   .site-header.open .socials { display: flex; position: absolute; top: 290px; left: 0; right: 0; justify-content: center; padding: 6px 0 18px; background: var(--cream); }
 
-  .hero .wrap { grid-template-columns: 1fr; min-height: 0; }
-  .hero-text { padding: 34px 0 10px; }
+  .hero { min-height: 0; display: block; }
+  .hero-text { padding: 34px 0 10px; max-width: none; }
   .hero-text .display { font-size: clamp(54px, 17vw, 84px); }
-  .hero-text .burst { left: auto; right: 0; top: 18px; width: 56px; height: 56px; }
+  .hero-text .burst { display: block; left: auto; right: 0; top: 18px; width: 56px; height: 56px; }
   .lead { font-size: 20px; margin: 16px 0 22px; }
   .btn { font-size: 16px; padding: 12px 22px; }
-  .hero-arrow { display: none; }
   .hero > .dots, .page-hero > .dots { opacity: .35; }
   .hero-text .lead, .sz-text p { position: relative; }
-  .hero-photo { margin: 10px -16px 0; }
-  .hero .wave { height: 60px; }
+  .hero-photo { position: relative; right: auto; bottom: auto; width: auto; margin: 10px -16px 0; overflow: hidden; }
+  .hero-photo img { width: 122%; max-width: none; margin-left: -20%; margin-bottom: -6%; -webkit-mask-image: none; mask-image: none; }
+  .hero .wave { height: 40px; }
   .features ul { display: none; }
   .features .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   .features .tile {
