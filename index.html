@@ -11,8 +11,8 @@
 <meta name="theme-color" content="#f7a823">
 <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="fonts/anton-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/fonts.css">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/fonts.css?v=20261017">
+<link rel="stylesheet" href="css/style.css?v=20261017">
 </head>
 <body>
 <header class="site-header">
@@ -149,14 +149,59 @@
     </div>
   </div>
 </section>
+
+<section class="newsletter" id="newsletter" data-nl-wrap hidden>
+  <div class="wrap">
+    <div class="nl-card">
+      <div class="nl-intro">
+        <div class="icon-circle"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 6.5 12 13l8.5-6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></div>
+        <h2 class="section-title">Zapisz się do <span class="accent">newslettera</span></h2>
+        <p>Raz w miesiącu, po publikacji nowego odcinka, wyślemy Ci krótką wiadomość. Bez spamu &mdash; z newslettera możesz wypisać się jednym kliknięciem.</p>
+      </div>
+      <form class="nl-form nl-main" data-nl novalidate>
+      <div class="nl-row">
+        <label class="sr-only" for="nl-main-email">Adres e-mail</label>
+        <input id="nl-main-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="Twój adres e-mail" maxlength="254" required>
+        <button class="btn nl-submit" type="submit">Zapisz się</button>
+      </div>
+      <div class="nl-hp" aria-hidden="true"><label>Nie wypełniaj tego pola <input name="website" type="text" tabindex="-1" autocomplete="off"></label></div>
+      <label class="nl-check"><input type="checkbox" name="consent_terms" required><span>Akceptuję <a href="regulamin-newslettera.html">Regulamin newslettera</a> i oświadczam, że zapoznałam/em się z <a href="polityka-prywatnosci.html">Polityką prywatności</a>. <em>(wymagane)</em></span></label>
+      <label class="nl-check"><input type="checkbox" name="consent_newsletter" required><span>Wyrażam zgodę na otrzymywanie newslettera „Kuchnia Metodyczna” z informacjami o nowych odcinkach podcastu na podany adres e-mail. <em>(wymagane)</em></span></label>
+      <p class="nl-msg" role="status" aria-live="polite"></p>
+    </form>
+    </div>
+  </div>
+</section>
 </main>
 <footer class="site-footer">
   <div class="wrap">
-    <a class="brand" href="index.html"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="50" fill="#f7a823"/><path fill="#fff" d="M35 16c-7 9-9 26-4 37l3 3v28a3.3 3.3 0 0 0 6.6 0V21c0-4-3.7-7.6-5.6-5z"/><path fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" d="M52 18v18M58.5 18v18M65 18v18"/><path fill="#fff" d="M50 33h17v5a8.5 8.5 0 0 1-17 0z"/><rect fill="#fff" x="55.3" y="44" width="6.4" height="43" rx="3.2"/></svg><span class="brand-text"><b>KUCHNIA</b><span>METODYCZNA</span></span></a>
-    <nav aria-label="Stopka"><a href="index.html">PODCAST</a> <a href="o-nas.html">O NAS</a> <a href="szkolenia.html">SZKOLENIA</a></nav>
-    <small>© <span id="year">2026</span> Kuchnia Metodyczna · Justyna Deczewska &amp; Magdalena Ziółek-Wojnar</small>
+    <div class="footer-top">
+      <a class="brand" href="index.html"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="50" fill="#f7a823"/><path fill="#fff" d="M35 16c-7 9-9 26-4 37l3 3v28a3.3 3.3 0 0 0 6.6 0V21c0-4-3.7-7.6-5.6-5z"/><path fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" d="M52 18v18M58.5 18v18M65 18v18"/><path fill="#fff" d="M50 33h17v5a8.5 8.5 0 0 1-17 0z"/><rect fill="#fff" x="55.3" y="44" width="6.4" height="43" rx="3.2"/></svg><span class="brand-text"><b>KUCHNIA</b><span>METODYCZNA</span></span></a>
+      <nav aria-label="Stopka"><a href="index.html">PODCAST</a> <a href="o-nas.html">O NAS</a> <a href="szkolenia.html">SZKOLENIA</a></nav>
+    </div>
+    <div class="footer-nl" data-nl-wrap hidden>
+      <h2>Newsletter</h2>
+      <p>Informacja o nowym odcinku podcastu prosto na Twoją skrzynkę &mdash; raz w miesiącu.</p>
+      <form class="nl-form nl-footer" data-nl novalidate>
+      <div class="nl-row">
+        <label class="sr-only" for="nl-foot-email">Adres e-mail</label>
+        <input id="nl-foot-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="Twój adres e-mail" maxlength="254" required>
+        <button class="btn nl-submit" type="submit">Zapisz się</button>
+      </div>
+      <div class="nl-hp" aria-hidden="true"><label>Nie wypełniaj tego pola <input name="website" type="text" tabindex="-1" autocomplete="off"></label></div>
+      <label class="nl-check"><input type="checkbox" name="consent_terms" required><span>Akceptuję <a href="regulamin-newslettera.html">Regulamin newslettera</a> i oświadczam, że zapoznałam/em się z <a href="polityka-prywatnosci.html">Polityką prywatności</a>. <em>(wymagane)</em></span></label>
+      <label class="nl-check"><input type="checkbox" name="consent_newsletter" required><span>Wyrażam zgodę na otrzymywanie newslettera „Kuchnia Metodyczna” z informacjami o nowych odcinkach podcastu na podany adres e-mail. <em>(wymagane)</em></span></label>
+      <p class="nl-msg" role="status" aria-live="polite"></p>
+    </form>
+    </div>
+    <div class="footer-bottom">
+      <small>© <span id="year">2026</span> Kuchnia Metodyczna · Justyna Deczewska &amp; Magdalena Ziółek-Wojnar · <a href="mailto:kuchniametodyczna@gmail.com">kuchniametodyczna@gmail.com</a></small>
+      <nav class="legal-links" aria-label="Dokumenty"><a href="regulamin-newslettera.html">Regulamin newslettera</a><a href="polityka-prywatnosci.html">Polityka prywatności</a><a href="wypisz.html">Wypisz się z newslettera</a></nav>
+    </div>
   </div>
 </footer>
-<script src="js/main.js" defer></script>
+<script src="js/main.js?v=20261017" defer></script>
+<script src="js/config.js?v=20261017" defer></script>
+<script src="js/newsletter.js?v=20261017" defer></script>
 </body>
 </html>

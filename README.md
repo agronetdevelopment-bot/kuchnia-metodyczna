@@ -22,3 +22,10 @@ Linki do YouTube i Instagrama ustaw w `build.py` (zmienne `YOUTUBE`, `INSTAGRAM`
 python3 -m http.server 8080
 ```
 i otwórz http://localhost:8080
+
+## Newsletter
+
+- Strony: `regulamin-newslettera.html`, `polityka-prywatnosci.html`, `potwierdz.html` (potwierdzenie zapisu), `wypisz.html` (wypis).
+- Formularz zapisu: sekcja na stronie głównej + stopka na każdej stronie. Jest ukryty, dopóki `js/config.js` nie zawiera adresu aplikacji Google Apps Script.
+- Backend: `apps-script/Code.gs` (Google Sheet + Gmail na koncie kuchniametodyczna@gmail.com). Instrukcja: `apps-script/INSTRUKCJA.md`.
+- Po zmianie Regulaminu/Polityki: zaktualizuj tekst i `REG_VERSION` / `POL_VERSION` w `build.py` oraz w `js/newsletter.js`, potem `python3 build.py`.

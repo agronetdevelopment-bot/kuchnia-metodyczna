@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Builds the static pages (index.html, o-nas.html, szkolenia.html).
+"""Builds the static pages (home, O nas, Szkolenia, newsletter legal + confirm/unsubscribe pages).
 
 Header, footer and icons live here once; run `python3 build.py` after edits.
 The generated .html files are plain static pages — no build step is needed to host them.
@@ -88,32 +88,93 @@ def header(active):
   </div>
 </header>'''
 
+# ============================ NEWSLETTER =====================================
+# Text versions are stored with every sign-up (proof of consent). When you
+# change the Regulamin or Polityka prywatności, bump the matching version.
+CONTACT = "kuchniametodyczna@gmail.com"
+REG_VERSION = "2026-10-17"
+POL_VERSION = "2026-10-17"
+ASSET_V = "20261017"
+
+CONSENT_TERMS = ("Akceptuję Regulamin newslettera i oświadczam, że zapoznałam/em się "
+                 "z Polityką prywatności.")
+CONSENT_NEWS = ("Wyrażam zgodę na otrzymywanie newslettera „Kuchnia Metodyczna” "
+                "z informacjami o nowych odcinkach podcastu na podany adres e-mail.")
+CONSENT_TERMS_HTML = ('Akceptuję <a href="regulamin-newslettera.html">Regulamin newslettera</a> '
+                      'i oświadczam, że zapoznałam/em się z <a href="polityka-prywatnosci.html">Polityką prywatności</a>.')
+
+MAIL_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5" '
+             'fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 6.5 12 13l8.5-6.5" fill="none" '
+             'stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>')
+
+def newsletter_form(prefix, variant):
+    """Sign-up form. Hidden until js/config.js has the Apps Script URL."""
+    return f'''<form class="nl-form nl-{variant}" data-nl novalidate>
+      <div class="nl-row">
+        <label class="sr-only" for="{prefix}-email">Adres e-mail</label>
+        <input id="{prefix}-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="Twój adres e-mail" maxlength="254" required>
+        <button class="btn nl-submit" type="submit">Zapisz się</button>
+      </div>
+      <div class="nl-hp" aria-hidden="true"><label>Nie wypełniaj tego pola <input name="website" type="text" tabindex="-1" autocomplete="off"></label></div>
+      <label class="nl-check"><input type="checkbox" name="consent_terms" required><span>{CONSENT_TERMS_HTML} <em>(wymagane)</em></span></label>
+      <label class="nl-check"><input type="checkbox" name="consent_newsletter" required><span>{CONSENT_NEWS} <em>(wymagane)</em></span></label>
+      <p class="nl-msg" role="status" aria-live="polite"></p>
+    </form>'''
+
+NEWSLETTER_SECTION = f'''<section class="newsletter" id="newsletter" data-nl-wrap hidden>
+  <div class="wrap">
+    <div class="nl-card">
+      <div class="nl-intro">
+        <div class="icon-circle">{MAIL_ICON}</div>
+        <h2 class="section-title">Zapisz się do <span class="accent">newslettera</span></h2>
+        <p>Raz w miesiącu, po publikacji nowego odcinka, wyślemy Ci krótką wiadomość. Bez spamu &mdash; z newslettera możesz wypisać się jednym kliknięciem.</p>
+      </div>
+      {newsletter_form("nl-main", "main")}
+    </div>
+  </div>
+</section>'''
+
+LEGAL_LINKS = ('<a href="regulamin-newslettera.html">Regulamin newslettera</a>'
+               '<a href="polityka-prywatnosci.html">Polityka prywatności</a>'
+               '<a href="wypisz.html">Wypisz się z newslettera</a>')
+
 def footer():
     links = " ".join(f'<a href="{h}">{t.upper()}</a>' for h, t in NAV)
     return f'''<footer class="site-footer">
   <div class="wrap">
-    <a class="brand" href="index.html">{LOGO}<span class="brand-text"><b>KUCHNIA</b><span>METODYCZNA</span></span></a>
-    <nav aria-label="Stopka">{links}</nav>
-    <small>© <span id="year">2026</span> Kuchnia Metodyczna · Justyna Deczewska &amp; Magdalena Ziółek-Wojnar</small>
+    <div class="footer-top">
+      <a class="brand" href="index.html">{LOGO}<span class="brand-text"><b>KUCHNIA</b><span>METODYCZNA</span></span></a>
+      <nav aria-label="Stopka">{links}</nav>
+    </div>
+    <div class="footer-nl" data-nl-wrap hidden>
+      <h2>Newsletter</h2>
+      <p>Informacja o nowym odcinku podcastu prosto na Twoją skrzynkę &mdash; raz w miesiącu.</p>
+      {newsletter_form("nl-foot", "footer")}
+    </div>
+    <div class="footer-bottom">
+      <small>© <span id="year">2026</span> Kuchnia Metodyczna · Justyna Deczewska &amp; Magdalena Ziółek-Wojnar · <a href="mailto:{CONTACT}">{CONTACT}</a></small>
+      <nav class="legal-links" aria-label="Dokumenty">{LEGAL_LINKS}</nav>
+    </div>
   </div>
 </footer>'''
 
-def page(filename, title, description, body):
+def page(filename, title, description, body, noindex=False):
+    robots = '\n<meta name="robots" content="noindex">' if noindex else ""
     html = f'''<!doctype html>
 <html lang="pl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-<meta name="description" content="{description}">
+<meta name="description" content="{description}">{robots}
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{description}">
 <meta property="og:image" content="img/hero-2.webp">
 <meta name="theme-color" content="#f7a823">
 <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="fonts/anton-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/fonts.css">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/fonts.css?v={ASSET_V}">
+<link rel="stylesheet" href="css/style.css?v={ASSET_V}">
 </head>
 <body>
 {header(filename)}
@@ -121,7 +182,9 @@ def page(filename, title, description, body):
 {body}
 </main>
 {footer()}
-<script src="js/main.js" defer></script>
+<script src="js/main.js?v={ASSET_V}" defer></script>
+<script src="js/config.js?v={ASSET_V}" defer></script>
+<script src="js/newsletter.js?v={ASSET_V}" defer></script>
 </body>
 </html>
 '''
@@ -222,7 +285,7 @@ episodes = f'''<section class="topics episodes" id="odcinki">
 
 page("index.html", "Kuchnia Metodyczna — podcast o nauczaniu języków",
      "Kuchnia Metodyczna: podcast i szkolenia dla nauczycieli języków obcych. Doświadczenie, wiedza i praktyka dla lepszych lekcji językowych.",
-     home + "\n\n" + episodes)
+     home + "\n\n" + episodes + "\n\n" + NEWSLETTER_SECTION)
 
 # ============================ SZKOLENIA ======================================
 topics = [
@@ -346,6 +409,89 @@ page("o-nas.html", "O nas — Kuchnia Metodyczna",
      "Justyna Deczewska i Magdalena Ziółek-Wojnar — dwie nauczycielki języków obcych, jedna wspólna pasja.",
      onas)
 
+# ============================ NEWSLETTER PAGES ===============================
+def fmt_date(v):
+    y, m, d = v.split("-")
+    return f"{d}.{m}.{y}"
+
+def legal_page(filename, title, h1_accent, h1_ink, version, items, description):
+    lis = "\n".join(f"        <li>{t}</li>" for t in items)
+    body = f'''<section class="legal">
+  <div class="dots" style="right:-20px;top:40px;width:160px;height:240px"></div>
+  <div class="wrap">
+    <h1 class="display"><span class="accent">{h1_accent}</span><span class="ink">{h1_ink}</span></h1>
+    <div class="legal-card">
+      <ol class="legal-list">
+{lis}
+      </ol>
+      <p class="legal-meta">Wersja z dnia {fmt_date(version)}.</p>
+    </div>
+    <p class="legal-back"><a class="btn" href="index.html#newsletter">Zapisz się do newslettera</a></p>
+  </div>
+</section>'''
+    page(filename, title, description, body)
+
+M = f'<a href="mailto:{CONTACT}">{CONTACT}</a>'
+
+legal_page("regulamin-newslettera.html", "Regulamin newslettera — Kuchnia Metodyczna",
+    "Regulamin", "newslettera", REG_VERSION, [
+    f"Newsletter „Kuchnia Metodyczna” jest bezpłatną usługą prowadzoną przez Magdalenę Ziółek-Wojnar i Justynę Deczewską, kontakt: {M}.",
+    "Newsletter służy do informowania o nowych odcinkach podcastu „Kuchnia Metodyczna”. Wiadomości wysyłane są zazwyczaj raz w miesiącu, po publikacji nowego odcinka.",
+    "Aby zapisać się do newslettera, należy podać adres e-mail, wyrazić zgodę na otrzymywanie wiadomości oraz potwierdzić zapis, klikając link wysłany na podany adres. Zapis oznacza rozpoczęcie korzystania z bezpłatnej usługi.",
+    "Do korzystania z newslettera potrzebne są dostęp do Internetu i aktywna skrzynka poczty elektronicznej. Zabronione jest przekazywanie za pośrednictwem formularza treści bezprawnych.",
+    f"Z newslettera można zrezygnować w każdej chwili, bez podawania przyczyny, klikając link „Wypisz się” w stopce każdej wiadomości (lub na stronie <a href=\"wypisz.html\">Wypisz się</a>) albo wysyłając wiadomość na {M}. Rezygnacja kończy korzystanie z usługi.",
+    "Reklamacje dotyczące newslettera można przesyłać na wskazany adres e-mail. Odpowiemy na nie w terminie 14 dni.",
+    'Informacje dotyczące przetwarzania danych osobowych znajdują się w <a href="polityka-prywatnosci.html">Polityce prywatności</a>.',
+    ], "Regulamin bezpłatnego newslettera Kuchni Metodycznej.")
+
+legal_page("polityka-prywatnosci.html", "Polityka prywatności — Kuchnia Metodyczna",
+    "Polityka", "prywatności", POL_VERSION, [
+    f"<b>Administratorki danych:</b> Magdalena Ziółek-Wojnar i Justyna Deczewska, wspólnie prowadzące projekt „Kuchnia Metodyczna”. Kontakt: {M}.",
+    "<b>Zakres danych:</b> przetwarzamy adres e-mail oraz informacje dokumentujące zapis, udzieloną zgodę i jej ewentualne wycofanie.",
+    "<b>Cel i podstawa prawna:</b> dane wykorzystujemy do obsługi bezpłatnego newslettera i wysyłania informacji o nowych odcinkach podcastu. Podstawą przetwarzania danych na potrzeby wysyłki jest zgoda (art. 6 ust. 1 lit. a RODO). Dane potwierdzające udzielenie zgody możemy przechowywać na podstawie naszego prawnie uzasadnionego interesu polegającego na wykazaniu zgodności z prawem (art. 6 ust. 1 lit. f RODO).",
+    "<b>Odbiorcy danych:</b> korzystamy z usług Google, w tym Gmaila, do obsługi poczty i newslettera. Dane mogą być przetwarzane również poza Europejskim Obszarem Gospodarczym, z zastosowaniem odpowiednich zabezpieczeń przewidzianych prawem.",
+    "<b>Czas przechowywania:</b> adres e-mail wykorzystujemy do wysyłki do chwili wycofania zgody lub zakończenia prowadzenia newslettera. Dane niezbędne do wykazania prawidłowości udzielonej zgody możemy przechowywać dłużej, przez okres potrzebny do obrony przed ewentualnymi roszczeniami.",
+    "<b>Twoje prawa:</b> masz prawo dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania, przenoszenia danych w przewidzianych prawem przypadkach oraz wniesienia sprzeciwu wobec przetwarzania opartego na prawnie uzasadnionym interesie. Możesz też w każdej chwili wycofać zgodę, bez wpływu na zgodność z prawem wcześniejszego przetwarzania, oraz wnieść skargę do Prezesa Urzędu Ochrony Danych Osobowych.",
+    "<b>Dobrowolność:</b> podanie adresu e-mail jest dobrowolne, ale konieczne do otrzymywania newslettera.",
+    "<b>Profilowanie:</b> nie podejmujemy wobec subskrybentów decyzji w sposób zautomatyzowany, w tym nie stosujemy profilowania.",
+    f"<b>Współadministrowanie:</b> wspólnie ustalamy cel i zasady przetwarzania danych. Do kontaktu w sprawach danych osobowych służy adres {M}. Możesz wykonywać swoje prawa wobec każdej z nas.",
+    ], "Polityka prywatności newslettera Kuchni Metodycznej.")
+
+def action_page(filename, title, accent, ink, inner):
+    body = f'''<section class="legal nl-action">
+  <div class="dots" style="left:-20px;top:60px;width:150px;height:220px"></div>
+  <div class="wrap">
+    <h1 class="display"><span class="accent">{accent}</span><span class="ink">{ink}</span></h1>
+    <div class="legal-card nl-panel">
+{inner}
+    </div>
+  </div>
+</section>'''
+    page(filename, title, title, body, noindex=True)
+
+action_page("potwierdz.html", "Potwierdzenie zapisu — Kuchnia Metodyczna", "Potwierdź", "zapis", f'''      <div data-nl-confirm>
+        <p class="nl-lead">Kliknij przycisk, aby potwierdzić zapis do newslettera „Kuchnia Metodyczna”.</p>
+        <button class="btn" type="button" data-nl-confirm-btn>Potwierdzam zapis</button>
+        <p class="nl-msg" role="status" aria-live="polite"></p>
+      </div>''')
+
+action_page("wypisz.html", "Wypisz się z newslettera — Kuchnia Metodyczna", "Wypisz się", "z newslettera", f'''      <div data-nl-unsub-token hidden>
+        <p class="nl-lead">Czy na pewno chcesz wypisać się z newslettera „Kuchnia Metodyczna”? Nie będziemy już wysyłać Ci wiadomości.</p>
+        <button class="btn" type="button" data-nl-unsub-btn>Wypisz mnie</button>
+        <p class="nl-msg" role="status" aria-live="polite"></p>
+      </div>
+      <form class="nl-form nl-unsub" data-nl-unsub-request hidden novalidate>
+        <p class="nl-lead">Podaj adres e-mail zapisany do newslettera. Wyślemy na niego link, którym potwierdzisz wypisanie.</p>
+        <div class="nl-row">
+          <label class="sr-only" for="unsub-email">Adres e-mail</label>
+          <input id="unsub-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="Twój adres e-mail" maxlength="254" required>
+          <button class="btn nl-submit" type="submit">Wyślij link</button>
+        </div>
+        <div class="nl-hp" aria-hidden="true"><label>Nie wypełniaj tego pola <input name="website" type="text" tabindex="-1" autocomplete="off"></label></div>
+        <p class="nl-msg" role="status" aria-live="polite"></p>
+      </form>
+      <p class="nl-alt">Możesz też napisać do nas: {M}.</p>''')
+
 # favicon
 (ROOT / "img" / "favicon.svg").write_text(LOGO.replace(' aria-hidden="true"', ' xmlns="http://www.w3.org/2000/svg"'), encoding="utf-8")
-print("Built index.html, o-nas.html, szkolenia.html")
+print("Built index, o-nas, szkolenia, regulamin-newslettera, polityka-prywatnosci, potwierdz, wypisz")
