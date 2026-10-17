@@ -8,6 +8,7 @@
  *   action=unsubscribe&t=…      → status "wypisany" + notification e-mail
  *                                 (also used by Gmail's one-click "Unsubscribe" button)
  *   action=unsubscribe_request  → e-mails a personal unsubscribe link
+ *   action=contact              → row in "Zapytania" + e-mail to NOTIFY_EMAIL (reply goes to the sender)
  * The "Newsletter" menu in the Sheet sends the monthly newsletter, one e-mail
  * per subscriber, each with a personal unsubscribe link.
  *
@@ -23,12 +24,17 @@ const CONFIG = {
   PENDING_CLEANUP_DAYS: 30,     // unconfirmed sign-ups older than this can be removed from the menu
   DAILY_NEWSLETTER_LIMIT: 90,   // newsletter e-mails per day (free Gmail account: keep below ~100)
   DAILY_SERVICE_MAIL_LIMIT: 60, // confirmation links, unsubscribe links and notices per day
-  WEB_APP_URL: ''               // optional: paste the /exec URL if one-click unsubscribe links are missing
+  WEB_APP_URL: '',              // optional: paste the /exec URL if one-click unsubscribe links are missing
+  WELCOME_GIFT_URL: '',         // optional: link to the welcome gift (e.g. a PDF on Google Drive shared "anyone with the link")
+  WELCOME_GIFT_LABEL: 'Pobierz prezent na powitanie',
+  WELCOME_GIFT_TEXT: ''         // optional: one sentence about the gift, e.g. 'W prezencie mamy dla Ciebie gotowy pomysł na lekcję.'
 };
 
 const SHEET_SUBS = 'Subskrybenci';
 const SHEET_MSG = 'Wiadomość';
 const SHEET_LOG = 'Dziennik';
+const SHEET_CONTACT = 'Zapytania';
+const CONTACT_HEADERS = ['Data', 'Imię i nazwisko', 'E-mail', 'Szkoła / instytucja', 'Telefon', 'Wiadomość', 'Strona', 'Status', 'Notatki'];
 const TZ = 'Europe/Warsaw';
 
 const STATUS = { PENDING: 'oczekuje', ACTIVE: 'aktywny', OUT: 'wypisany' };
@@ -37,12 +43,12 @@ const HEADERS = [
   'E-mail', 'Status', 'Data zapisu', 'Data potwierdzenia', 'Data wypisu',
   'Zgoda: regulamin i polityka (treść)', 'Zgoda: newsletter (treść)',
   'Wersja regulaminu', 'Wersja polityki', 'Strona zapisu', 'Przeglądarka',
-  'Token wypisu', 'Token potwierdzenia', 'Ostatnia wysyłka (ID)', 'Uwagi'
+  'Token wypisu', 'Token potwierdzenia', 'Ostatnia wysyłka (ID)', 'Uwagi', 'Imię'
 ];
 const COL = {
   EMAIL: 1, STATUS: 2, SIGNED: 3, CONFIRMED: 4, UNSUBSCRIBED: 5,
   CONSENT_TERMS: 6, CONSENT_NEWS: 7, REG_VER: 8, POL_VER: 9, PAGE: 10, UA: 11,
-  UNSUB_TOKEN: 12, CONFIRM_TOKEN: 13, LAST_SENT: 14, NOTES: 15
+  UNSUB_TOKEN: 12, CONFIRM_TOKEN: 13, LAST_SENT: 14, NOTES: 15, NAME: 16
 };
 
 const EMAIL_RE = /^[^\s@<>()",;:]+@[^\s@<>()",;:]+\.[a-z]{2,}$/i;
@@ -64,6 +70,7 @@ function doPost(e) {
       case 'confirm': return json_(confirm_(p));
       case 'unsubscribe': return json_(unsubscribe_(p));
       case 'unsubscribe_request': return json_(unsubscribeRequest_(p));
+      case 'contact': return json_(contact_(p));
       default: return json_({ ok: false, error: 'unknown_action' });
     }
   } catch (err) {
@@ -109,7 +116,7 @@ function subscribe_(p) {
       clip_(p.consent_terms, 500), clip_(p.consent_newsletter, 500),
       clip_(p.reg_version, 20), clip_(p.pol_version, 20),
       clip_(p.page, 200), clip_(p.ua, 200),
-      '', confirmToken, '', ''
+      '', confirmToken, '', '', cleanName_(p.name)
     ].map(safe_);
 
     if (row) {
@@ -122,6 +129,7 @@ function subscribe_(p) {
           ' (poprzedni wypis: ' + fmt_(old[COL.UNSUBSCRIBED - 1]) + ')';
       }
       values[COL.NOTES - 1] = notes;
+      if (!values[COL.NAME - 1]) values[COL.NAME - 1] = old[COL.NAME - 1] || '';
       sheet.getRange(row, 1, 1, HEADERS.length).setValues([values]);
     } else {
       values[COL.UNSUB_TOKEN - 1] = newToken_();
@@ -131,7 +139,7 @@ function subscribe_(p) {
     lock.releaseLock();
   }
 
-  sendConfirmation_(email, confirmToken);
+  sendConfirmation_(email, confirmToken, cleanName_(p.name));
   cache.put(cacheKey, '1', 600);                  // one confirmation e-mail per address per 10 min
   log_('ZAPIS (oczekuje)', email, clip_(p.page, 200));
   return { ok: true, status: 'pending' };
@@ -142,13 +150,15 @@ function confirm_(p) {
   if (!TOKEN_RE.test(t)) return { ok: false, error: 'invalid' };
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
-  let email;
+  let email, name, unsubToken;
   try {
     const sheet = subsSheet_();
     const row = findRow_(sheet, COL.CONFIRM_TOKEN, t);
     if (!row) return { ok: false, error: 'invalid' };
     const r = sheet.getRange(row, 1, 1, HEADERS.length).getValues()[0];
     email = r[COL.EMAIL - 1];
+    name = r[COL.NAME - 1] || '';
+    unsubToken = r[COL.UNSUB_TOKEN - 1];
     if (r[COL.STATUS - 1] === STATUS.ACTIVE) return { ok: true, status: 'already' };
     if (r[COL.STATUS - 1] === STATUS.OUT) return { ok: false, error: 'invalid' };
     const signed = r[COL.SIGNED - 1];
@@ -161,6 +171,11 @@ function confirm_(p) {
     lock.releaseLock();
   }
   log_('POTWIERDZENIE', email, '');
+  try {
+    if (takeBudget_('service', CONFIG.DAILY_SERVICE_MAIL_LIMIT)) sendWelcome_(email, name, unsubToken);
+  } catch (err) {
+    log_('BŁĄD POWITANIA', email, String(err && err.message || err));
+  }
   notify_('Nowy subskrybent: ' + email,
     'Nowa osoba potwierdziła zapis do newslettera:\n\n' + email + '\n\n' +
     'Podsumowanie: ' + summaryText_() + '\n\nArkusz: ' + SpreadsheetApp.getActive().getUrl());
@@ -215,17 +230,17 @@ function unsubscribeRequest_(p) {
 // E-mails (confirmation, unsubscribe link, notices)
 // =============================================================================
 
-function sendConfirmation_(email, token) {
+function sendConfirmation_(email, token, name) {
   const url = CONFIG.SITE_URL + '/potwierdz.html?t=' + token;
   const html = layout_(
-    '<p>Dzień dobry!</p>' +
+    '<p>' + esc_(greeting_(name)) + '</p>' +
     '<p>Dziękujemy za zapis do newslettera „Kuchnia Metodyczna”. Aby go potwierdzić, kliknij przycisk poniżej ' +
     '(link jest ważny przez ' + CONFIG.CONFIRM_DAYS + ' dni):</p>' +
     button_(url, 'Potwierdzam zapis') +
     '<p style="color:#6b645b;font-size:14px">Jeśli to nie Ty podałaś/eś ten adres, po prostu zignoruj tę wiadomość &mdash; ' +
     'bez potwierdzenia nie wyślemy Ci newslettera.</p>' +
     '<p>Magdalena i Justyna<br>Kuchnia Metodyczna</p>', '');
-  const text = 'Dzień dobry!\n\nDziękujemy za zapis do newslettera „Kuchnia Metodyczna”. ' +
+  const text = greeting_(name) + '\n\nDziękujemy za zapis do newslettera „Kuchnia Metodyczna”. ' +
     'Aby go potwierdzić, otwórz link (ważny przez ' + CONFIG.CONFIRM_DAYS + ' dni):\n' + url +
     '\n\nJeśli to nie Ty podałaś/eś ten adres, zignoruj tę wiadomość.\n\nMagdalena i Justyna\nKuchnia Metodyczna';
   MailApp.sendEmail({
@@ -247,6 +262,80 @@ function sendUnsubscribeLink_(email, token) {
     to: email, subject: 'Wypisanie z newslettera Kuchni Metodycznej',
     body: text, htmlBody: html, name: CONFIG.SENDER_NAME, replyTo: CONFIG.REPLY_TO
   });
+}
+
+function sendWelcome_(email, name, unsubToken) {
+  const unsubUrl = CONFIG.SITE_URL + '/wypisz.html?t=' + unsubToken;
+  const gift = CONFIG.WELCOME_GIFT_URL
+    ? (CONFIG.WELCOME_GIFT_TEXT ? '<p>' + esc_(CONFIG.WELCOME_GIFT_TEXT) + '</p>' : '') + button_(CONFIG.WELCOME_GIFT_URL, CONFIG.WELCOME_GIFT_LABEL)
+    : '';
+  const html = layout_(
+    '<p>' + esc_(greeting_(name)) + '</p>' +
+    '<p>Zapis potwierdzony &mdash; witamy w Kuchni Metodycznej! Raz w miesiącu, po publikacji nowego odcinka, ' +
+    'dostaniesz od nas krótką wiadomość.</p>' + gift +
+    '<p>Na początek zajrzyj do naszych odcinków: <a href="' + CONFIG.SITE_URL + '/podcast.html" style="color:#e07f00;font-weight:bold">' +
+    'wszystkie odcinki podcastu</a>.</p>' +
+    '<p>Magdalena i Justyna<br>Kuchnia Metodyczna</p>',
+    '<p style="margin:0">Nie chcesz otrzymywać newslettera? <a href="' + unsubUrl + '" style="color:#1b1b1a">Wypisz się</a>.</p>');
+  const text = greeting_(name) + '\n\nZapis potwierdzony — witamy w Kuchni Metodycznej! Raz w miesiącu, po publikacji nowego odcinka, ' +
+    'dostaniesz od nas krótką wiadomość.' +
+    (CONFIG.WELCOME_GIFT_URL ? '\n\n' + (CONFIG.WELCOME_GIFT_TEXT ? CONFIG.WELCOME_GIFT_TEXT + '\n' : '') + CONFIG.WELCOME_GIFT_LABEL + ': ' + CONFIG.WELCOME_GIFT_URL : '') +
+    '\n\nWszystkie odcinki: ' + CONFIG.SITE_URL + '/podcast.html\n\nMagdalena i Justyna\nKuchnia Metodyczna\n\nWypisz się: ' + unsubUrl;
+  MailApp.sendEmail({
+    to: email, subject: 'Witamy w newsletterze Kuchni Metodycznej',
+    body: text, htmlBody: html, name: CONFIG.SENDER_NAME, replyTo: CONFIG.REPLY_TO
+  });
+}
+
+// =============================================================================
+// Contact form (Szkolenia)
+// =============================================================================
+
+function contact_(p) {
+  if (p.website) return { ok: true };                              // spam trap
+  const email = normEmail_(p.email);
+  const name = String(p.name || '').trim().slice(0, 120);
+  const message = String(p.message || '').trim().slice(0, 5000);
+  const org = String(p.org || '').trim().slice(0, 200);
+  const phone = String(p.phone || '').trim().slice(0, 40);
+  if (!email) return { ok: false, error: 'invalid_email' };
+  if (!name || message.length < 5) return { ok: false, error: 'missing_fields' };
+  if (phone && !/^[0-9 +()\-./]{6,40}$/.test(phone)) return { ok: false, error: 'invalid_phone' };
+
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'contact:' + email;
+  if (cache.get(cacheKey)) return { ok: false, error: 'rate_limited' };
+  if (!takeBudget_('service', CONFIG.DAILY_SERVICE_MAIL_LIMIT)) return { ok: false, error: 'busy' };
+
+  const sheet = contactSheet_();
+  sheet.appendRow([new Date(), name, email, org, phone, message, clip_(p.page, 200), 'nowe', ''].map(safe_));
+  cache.put(cacheKey, '1', 120);
+
+  const body = 'Nowe zapytanie o szkolenie ze strony kuchniametodyczna.pl\n\n' +
+    'Imię i nazwisko: ' + name + '\nE-mail: ' + email +
+    (org ? '\nSzkoła / instytucja: ' + org : '') + (phone ? '\nTelefon: ' + phone : '') +
+    '\n\nWiadomość:\n' + message +
+    '\n\n—\nAby odpowiedzieć, kliknij „Odpowiedz” – wiadomość trafi bezpośrednio do ' + email + '.' +
+    '\nWszystkie zapytania: ' + SpreadsheetApp.getActive().getUrl();
+  MailApp.sendEmail({
+    to: CONFIG.NOTIFY_EMAIL, replyTo: email, name: 'Formularz – Kuchnia Metodyczna',
+    subject: '[Szkolenia] Zapytanie od ' + name + (org ? ' (' + org + ')' : ''), body: body
+  });
+  log_('ZAPYTANIE', email, org);
+  return { ok: true };
+}
+
+function contactSheet_() {
+  const ss = SpreadsheetApp.getActive();
+  let sh = ss.getSheetByName(SHEET_CONTACT);
+  if (!sh) {
+    sh = ss.insertSheet(SHEET_CONTACT);
+    sh.getRange(1, 1, 1, CONTACT_HEADERS.length).setValues([CONTACT_HEADERS]).setFontWeight('bold').setBackground('#fde7bd');
+    sh.setFrozenRows(1);
+    sh.getRange('A:A').setNumberFormat('yyyy-mm-dd hh:mm');
+    sh.setColumnWidth(6, 420);
+  }
+  return sh;
 }
 
 function notify_(subject, text) {
@@ -278,8 +367,8 @@ function wyslijTest() {
   const ui = SpreadsheetApp.getUi();
   const msg = readMessage_();
   if (!msg) return;
-  sendNewsletterMail_(CONFIG.NOTIFY_EMAIL, msg, 'TESTOWYtokenNIEDZIALA00');
-  ui.alert('Wysłano test na ' + CONFIG.NOTIFY_EMAIL + '. Sprawdź wygląd wiadomości (link „Wypisz się” w teście nie działa).');
+  sendNewsletterMail_(CONFIG.NOTIFY_EMAIL, msg, 'TESTOWYtokenNIEDZIALA00', 'Justyna');
+  ui.alert('Wysłano test na ' + CONFIG.NOTIFY_EMAIL + '. Sprawdź wygląd wiadomości (w teście {powitanie} zamienia się na „Cześć, Justyna!”, a link „Wypisz się” nie działa).');
 }
 
 function wyslijNowy() {
@@ -324,7 +413,7 @@ function runCampaign_(id, msg) {
     if (Date.now() - started > 5 * 60 * 1000) { stoppedBy = 'czas'; left++; continue; }
     if (!takeBudget_('newsletter', CONFIG.DAILY_NEWSLETTER_LIMIT)) { stoppedBy = 'limit'; left++; continue; }
     try {
-      sendNewsletterMail_(r[COL.EMAIL - 1], msg, r[COL.UNSUB_TOKEN - 1]);
+      sendNewsletterMail_(r[COL.EMAIL - 1], msg, r[COL.UNSUB_TOKEN - 1], r[COL.NAME - 1]);
       sheet.getRange(i + 2, COL.LAST_SENT).setValue(safe_(id));
       sent++;
       Utilities.sleep(250);
@@ -345,7 +434,8 @@ function runCampaign_(id, msg) {
   ui.alert(status + extra);
 }
 
-function sendNewsletterMail_(to, msg, unsubToken) {
+function sendNewsletterMail_(to, msg, unsubToken, name) {
+  msg = personalise_(msg, name);
   const pageUrl = CONFIG.SITE_URL + '/wypisz.html?t=' + unsubToken;
   const footerHtml =
     '<p style="margin:0">Otrzymujesz tę wiadomość, bo zapisałaś/eś się do newslettera „Kuchnia Metodyczna”.<br>' +
@@ -451,16 +541,19 @@ function skonfiguruj() {
   if (!msg.getRange('A1').getValue()) {
     msg.getRange('A1:A5').setValues([['Temat'], ['Treść'], [''], ['Ostatnia wysyłka (ID)'], ['Status wysyłki']]).setFontWeight('bold');
     msg.getRange('B1').setValue('Nowy odcinek Kuchni Metodycznej: …');
-    msg.getRange('B2').setValue('Dzień dobry!\n\nW nowym odcinku podcastu rozmawiamy o …\n\n' +
+    msg.getRange('B2').setValue('{powitanie}\n\nW nowym odcinku podcastu rozmawiamy o …\n\n' +
       'Posłuchaj na Spotify: https://open.spotify.com/show/78JCaoAEl9yniNS0A4y9NV\n' +
       'Obejrzyj na YouTube: https://www.youtube.com/@KuchniaMetodyczna\n\nMagdalena i Justyna');
     msg.getRange('A7').setValue('Jak wysłać: wpisz temat (B1) i treść (B2). Pusta linia = nowy akapit, linki działają automatycznie. ' +
+      '{powitanie} zamieni się na „Cześć, Anna!” (albo „Dzień dobry!”, jeśli ktoś nie podał imienia). ' +
       'Potem menu „Newsletter → Wyślij test”, a gdy wszystko wygląda dobrze: „Wyślij newsletter (nowa wysyłka)”.');
     msg.getRange('B2').setWrap(true).setVerticalAlignment('top');
     msg.setColumnWidth(1, 170);
     msg.setColumnWidth(2, 640);
     msg.setRowHeight(2, 260);
   }
+
+  contactSheet_();
 
   let logSheet = ss.getSheetByName(SHEET_LOG) || ss.insertSheet(SHEET_LOG);
   if (!logSheet.getRange('A1').getValue()) {
@@ -469,12 +562,35 @@ function skonfiguruj() {
   }
   // Touch services so the permission prompt covers everything.
   MailApp.getRemainingDailyQuota();
-  try { SpreadsheetApp.getUi().alert('Gotowe! Arkusze są skonfigurowane. Teraz wdroż aplikację internetową (patrz instrukcja).'); } catch (e) {}
+  // Non-blocking notice (an alert would make a run from the editor wait for a click in the Sheet).
+  ss.toast('Arkusze są skonfigurowane. Teraz wdroż aplikację internetową (patrz instrukcja).', 'Gotowe!', 10);
 }
 
 // =============================================================================
 // Helpers
 // =============================================================================
+
+function cleanName_(v) {
+  return String(v || '').replace(/[<>"\n\r\t]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+}
+
+/** "Cześć, Anna!" when we know the first name, otherwise "Dzień dobry!". */
+function greeting_(name) {
+  const n = cleanName_(name);
+  return n ? 'Cześć, ' + n + '!' : 'Dzień dobry!';
+}
+
+/** Placeholders in the newsletter subject/body: {powitanie} → greeting, {imie}/{imię} → first name (or empty). */
+function personalise_(msg, name) {
+  const n = cleanName_(name);
+  const f = function (t) {
+    t = String(t).replace(/\{powitanie\}/gi, greeting_(n));
+    // Without a name, drop "{imię}" together with a following comma ("{imię}, nowy odcinek" → "Nowy odcinek").
+    return n ? t.replace(/\{imi[eę]\}/gi, n) : t.replace(/\{imi[eę]\}\s*,?\s*/gi, '');
+  };
+  const subject = f(msg.subject).trim();
+  return { subject: subject.charAt(0).toUpperCase() + subject.slice(1), body: f(msg.body) };
+}
 
 function json_(o) {
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);

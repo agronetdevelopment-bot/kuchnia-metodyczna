@@ -43,6 +43,14 @@ Wszystko robimy **na koncie kuchniametodyczna@gmail.com** (zaloguj się na nie w
 3. W karcie **Wiadomość** wpisz temat i treść → menu **Newsletter → Wyślij test**.
 4. W mailu testowym sprawdź wygląd. (Link „Wypisz się” w teście nie działa — w prawdziwej wysyłce każdy dostaje własny.)
 
+## Aktualizacja skryptu (gdy Dima przyśle nową wersję Code.gs)
+
+1. Otwórz arkusz → **Rozszerzenia → Apps Script** (w oknie prywatnym, zalogowana tylko na kuchniametodyczna@gmail.com).
+2. W pliku `Kod.gs`: **Cmd+A**, **Delete**, wklej nowy kod, **Cmd+S**.
+3. Z listy funkcji wybierz **skonfiguruj** → **Uruchom** (doda nowe karty/kolumny; jeśli Google zapyta o uprawnienia — zezwól jak za pierwszym razem).
+4. **Wdróż → Zarządzaj wdrożeniami** → ikona **ołówka** → **Wersja: Nowa wersja** → **Wdróż**.
+   Adres `/exec` się nie zmienia — na stronie nic nie trzeba poprawiać.
+
 ## Na co dzień
 
 | Co | Jak |
@@ -55,6 +63,9 @@ Wszystko robimy **na koncie kuchniametodyczna@gmail.com** (zaloguj się na nie w
 | Ktoś prosi o usunięcie danych (RODO) | Usuń cały wiersz (prawy klik → Usuń wiersz) |
 | Porządki | **Newsletter → Usuń niepotwierdzone zapisy** (starsze niż 30 dni) |
 | Liczby | **Newsletter → Pokaż podsumowanie** |
+| Zapytania o szkolenia | Mail „[Szkolenia] Zapytanie od…” na kuchniametodyczna@gmail.com — **Odpowiedz** trafia prosto do osoby pytającej. Wszystkie zapytania są też w karcie **Zapytania** (kolumna Status: wpisz np. „odpowiedziane”) |
+| Personalizacja | W treści (B2) wpisz `{powitanie}` → „Cześć, Anna!” albo „Dzień dobry!”, gdy ktoś nie podał imienia. `{imię}` wstawia samo imię |
+| Prezent powitalny | Wrzuć plik (np. PDF) na Dysk Google → Udostępnij → „Każdy, kto ma link”. Link wklej w skrypcie: `WELCOME_GIFT_URL`, opis w `WELCOME_GIFT_TEXT`, zapisz i zrób **nową wersję wdrożenia**. Daj znać Dimie, żeby na stronie pojawiła się informacja o prezencie |
 
 **Nie zmieniaj** nazw kart ani kolejności kolumn. Ukryte kolumny L–M (tokeny) są potrzebne do linków potwierdzania i wypisu.
 

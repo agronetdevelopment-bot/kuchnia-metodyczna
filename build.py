@@ -69,7 +69,7 @@ SOCIAL = f'''<div class="socials">
 </div>'''
 
 CUR = ' aria-current="page"'
-NAV = [("index.html", "Podcast"), ("o-nas.html", "O nas"), ("szkolenia.html", "Szkolenia")]
+NAV = [("podcast.html", "Podcast"), ("o-nas.html", "O nas"), ("szkolenia.html", "Szkolenia")]
 
 def header(active):
     links = "\n    ".join(
@@ -93,8 +93,8 @@ def header(active):
 # change the Regulamin or Polityka prywatności, bump the matching version.
 CONTACT = "kuchniametodyczna@gmail.com"
 REG_VERSION = "2026-10-17"
-POL_VERSION = "2026-10-17"
-ASSET_V = "20261017"
+POL_VERSION = "2026-10-17.2"   # .2 = dodany formularz kontaktowy i imię
+ASSET_V = "2026101702"
 
 CONSENT_TERMS = ("Akceptuję Regulamin newslettera i oświadczam, że zapoznałam/em się "
                  "z Polityką prywatności.")
@@ -111,6 +111,8 @@ def newsletter_form(prefix, variant):
     """Sign-up form. Hidden until js/config.js has the Apps Script URL."""
     return f'''<form class="nl-form nl-{variant}" data-nl novalidate>
       <div class="nl-row">
+        <label class="sr-only" for="{prefix}-name">Imię (opcjonalnie)</label>
+        <input id="{prefix}-name" class="nl-name" name="first_name" type="text" autocomplete="given-name" placeholder="Imię (opcjonalnie)" maxlength="60">
         <label class="sr-only" for="{prefix}-email">Adres e-mail</label>
         <input id="{prefix}-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="Twój adres e-mail" maxlength="254" required>
         <button class="btn nl-submit" type="submit">Zapisz się</button>
@@ -128,11 +130,26 @@ NEWSLETTER_SECTION = f'''<section class="newsletter" id="newsletter" data-nl-wra
         <div class="icon-circle">{MAIL_ICON}</div>
         <h2 class="section-title">Zapisz się do <span class="accent">newslettera</span></h2>
         <p>Raz w miesiącu, po publikacji nowego odcinka, wyślemy Ci krótką wiadomość. Bez spamu &mdash; z newslettera możesz wypisać się jednym kliknięciem.</p>
+        <p class="nl-gift" data-nl-gift hidden></p>
       </div>
       {newsletter_form("nl-main", "main")}
     </div>
   </div>
 </section>'''
+
+NEWSLETTER_POPUP = f'''<div class="nl-pop" data-nl-popup role="dialog" aria-modal="false" aria-labelledby="nl-pop-title" hidden>
+  <button class="nl-pop-x" type="button" aria-label="Zamknij" data-nl-pop-close><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+  <div class="nl-pop-head">
+    <div class="icon-circle">{MAIL_ICON}</div>
+    <div>
+      <h2 id="nl-pop-title">Nowy odcinek prosto na Twoją skrzynkę</h2>
+      <p>Raz w miesiącu krótka wiadomość o nowym odcinku podcastu. Bez spamu.</p>
+    </div>
+  </div>
+  <p class="nl-gift" data-nl-gift hidden></p>
+  {newsletter_form("nl-pop", "popup")}
+  <button class="nl-pop-no" type="button" data-nl-pop-close>Nie, dziękuję</button>
+</div>'''
 
 LEGAL_LINKS = ('<a href="regulamin-newslettera.html">Regulamin newslettera</a>'
                '<a href="polityka-prywatnosci.html">Polityka prywatności</a>'
@@ -158,7 +175,7 @@ def footer():
   </div>
 </footer>'''
 
-def page(filename, title, description, body, noindex=False):
+def page(filename, title, description, body, noindex=False, popup=True):
     robots = '\n<meta name="robots" content="noindex">' if noindex else ""
     html = f'''<!doctype html>
 <html lang="pl">
@@ -182,6 +199,7 @@ def page(filename, title, description, body, noindex=False):
 {body}
 </main>
 {footer()}
+{NEWSLETTER_POPUP if popup and not noindex else ""}
 <script src="js/main.js?v={ASSET_V}" defer></script>
 <script src="js/config.js?v={ASSET_V}" defer></script>
 <script src="js/newsletter.js?v={ASSET_V}" defer></script>
@@ -192,7 +210,7 @@ def page(filename, title, description, body, noindex=False):
 
 # ============================ HOME ===========================================
 features = [
-    ("index.html#odcinki", "mic", "Podcast", "Inspirujące rozmowy<br>o nauczaniu języków."),
+    ("podcast.html", "mic", "Podcast", "Inspirujące rozmowy<br>o nauczaniu języków."),
     ("o-nas.html", "users", "O nas", "Dwie nauczycielki,<br>jedna wspólna pasja."),
     ("szkolenia.html", "cap", "Szkolenia", "Praktyczna wiedza<br>dla nauczycieli."),
 ]
@@ -257,35 +275,109 @@ EPISODES = [
  (2,"pencil","Praca domowa a kuchnia alzacka","28 min","Jaki związek ma praca domowa z kuchnią alzacką? Czy w ogóle ma sens i jaka powinna być?","YtRDT_m-6yI","1CTgvhEFWkZIiYADvqASt8"),
  (1,"brain","Co ma wspólnego nauczyciel z linoskoczkiem?","34 min","Jak znaleźć balans pomiędzy nowoczesnym i tradycyjnym, efektywnym i efektownym na lekcji języka obcego?","GXDWUULLO8A","1kehYw6SmsDmwiJtb6zLEl"),
 ]
+# Kategorie odcinków (punkt 3/4). Klucz -> etykieta; przypisanie po numerze odcinka.
+CATEGORIES = [("metodyka", "Metodyka"), ("jezyki", "Języki na widelcu"),
+              ("uczen", "Uczeń i klasa"), ("rozwoj", "Kompetencje i rozwój")]
+CAT_LABEL = dict(CATEGORIES)
+EP_CAT = {17: "uczen", 16: "rozwoj", 15: "rozwoj", 14: "metodyka", 13: "jezyki", 12: "rozwoj",
+          11: "uczen", 10: "metodyka", 9: "jezyki", 8: "metodyka", 7: "metodyka", 6: "jezyki",
+          5: "metodyka", 4: "metodyka", 3: "jezyki", 2: "metodyka", 1: "rozwoj"}
+assert set(EP_CAT) == {e[0] for e in EPISODES}
+
 SP_ICON = '<svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="13" fill="currentColor"/><path d="M7 10.5c4.8-1.5 10-1 14 1.3M8 14.4c4-1.1 8.2-.7 11.4 1.1M8.8 18c3.2-.8 6.4-.5 9 .9" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>'
 YT_ICON = '<svg viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="5" width="26" height="18" rx="5" fill="currentColor"/><path d="M11.5 9.5v9l7.5-4.5z" fill="#fff"/></svg>'
+ARROW = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 
 def episode_card(ep, latest=False):
     n, icon, title, dur, desc, yt, sp = ep
+    cat = EP_CAT[n]
     links = (f'<a class="ep-link" href="https://open.spotify.com/episode/{sp}" target="_blank" rel="noopener" aria-label="Słuchaj odcinka {n} na Spotify">{SP_ICON}Spotify</a>'
              f'<a class="ep-link" href="https://www.youtube.com/watch?v={yt}" target="_blank" rel="noopener" aria-label="Oglądaj odcinek {n} na YouTube">{YT_ICON}YouTube</a>')
     cls = "topic episode latest" if latest else "topic episode"
     badge = '<span class="ep-new">Najnowszy odcinek</span>' if latest else ''
-    return f'''      <article class="{cls}">
+    return f'''      <article class="{cls}" data-cat="{cat}">
         <div class="topic-head"><span class="num">{n}</span><div class="icon-circle">{I[icon]}</div><h3>{title}</h3></div>
-        <div class="ep-body">{badge}<p>{desc}</p><div class="ep-meta"><span class="ep-dur">{dur}</span><div class="ep-links">{links}</div></div></div>
+        <div class="ep-body"><div class="ep-tags">{badge}<span class="ep-cat cat-{cat}">{CAT_LABEL[cat]}</span></div><p>{desc}</p><div class="ep-meta"><span class="ep-dur">{dur}</span><div class="ep-links">{links}</div></div></div>
       </article>'''
 
-episode_html = "\n".join(episode_card(e, latest=(i == 0)) for i, e in enumerate(EPISODES))
+def episode_grid(eps):
+    return "\n".join(episode_card(e, latest=(i == 0)) for i, e in enumerate(eps))
 
+HOME_EPISODES = 5   # najnowszy + 4 kolejne (punkt 2: lista nie dominuje strony głównej)
 episodes = f'''<section class="topics episodes" id="odcinki">
   <div class="dots" style="right:-20px;top:40px;width:140px;height:240px"></div>
   <div class="wrap">
-    <h2 class="section-title">Odcinki <span class="accent">podcastu</span>{burst()}</h2>
+    <h2 class="section-title">Najnowsze <span class="accent">odcinki</span>{burst()}</h2>
     <div class="topic-grid">
-{episode_html}
+{episode_grid(EPISODES[:HOME_EPISODES])}
+    </div>
+    <p class="more-link"><a class="btn btn-ghost" href="podcast.html">Wszystkie odcinki ({len(EPISODES)}){ARROW}</a></p>
+  </div>
+</section>'''
+
+# Szkolenia na stronie głównej — równowaga z podcastem (punkt 2)
+home_training = f'''<section class="home-training">
+  <div class="wrap">
+    <div class="ht-card">
+      <div class="ht-text">
+        <span class="kicker">Dla szkół i zespołów</span>
+        <h2 class="section-title">Szkolenia <span class="accent">Kuchni Metodycznej</span></h2>
+        <p>Prowadzimy autorskie szkolenia i warsztaty dla nauczycieli języków obcych – online i stacjonarnie, w całej Polsce. Dopasowujemy temat i formę do potrzeb Twojego zespołu.</p>
+        <ul class="ht-topics">
+          <li>{I["robot"]}Materiały dydaktyczne z AI</li>
+          <li>{I["chat"]}Jak uruchomić grupę, która milczy</li>
+          <li>{I["dice"]}Grywalizacja z sensem</li>
+        </ul>
+        <div class="ht-actions">
+          <a class="btn" href="szkolenia.html">Zobacz tematy szkoleń{ARROW}</a>
+          <a class="btn btn-ghost" href="szkolenia.html#kontakt">Porozmawiajmy</a>
+        </div>
+      </div>
+      <div class="ht-photo"><img src="img/szkolenia-2.webp" width="980" height="916" alt="Justyna Deczewska i Magdalena Ziółek-Wojnar" loading="lazy"></div>
     </div>
   </div>
 </section>'''
 
-page("index.html", "Kuchnia Metodyczna — podcast o nauczaniu języków",
+page("index.html", "Kuchnia Metodyczna — podcast i szkolenia dla nauczycieli języków",
      "Kuchnia Metodyczna: podcast i szkolenia dla nauczycieli języków obcych. Doświadczenie, wiedza i praktyka dla lepszych lekcji językowych.",
-     home + "\n\n" + episodes + "\n\n" + NEWSLETTER_SECTION)
+     home + "\n\n" + episodes + "\n\n" + home_training + "\n\n" + NEWSLETTER_SECTION)
+
+# ============================ PODCAST ========================================
+filters = '<button type="button" class="chip" aria-pressed="true" data-filter="all">Wszystkie</button>' + "".join(
+    f'<button type="button" class="chip" aria-pressed="false" data-filter="{k}">{v}</button>' for k, v in CATEGORIES)
+podcast = f'''<section class="page-hero podcast-hero">
+  <div class="dots" style="left:-30px;top:30px;width:120px;height:260px"></div>
+  <div class="wrap">
+    <div class="pc-text">
+      {burst()}
+      <h1 class="display"><span class="accent">Podcast</span><span class="ink">Kuchnia Metodyczna</span></h1>
+      <p>Rozmowy o nauczaniu języków obcych: metodyka, praktyka z sali lekcyjnej i podróże po językach świata. Nowy odcinek mniej więcej raz w miesiącu.</p>
+      <div class="pc-actions">
+        <a class="btn" href="{SPOTIFY}" target="_blank" rel="noopener">{SP_ICON}Słuchaj na Spotify</a>
+        <a class="btn btn-ghost" href="{YOUTUBE}" target="_blank" rel="noopener">{YT_ICON}Oglądaj na YouTube</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="topics episodes" id="odcinki">
+  <div class="wrap">
+    <div class="ep-toolbar">
+      <h2 class="section-title">Wszystkie <span class="accent">odcinki</span></h2>
+      <div class="chips" role="group" aria-label="Filtruj odcinki według kategorii">{filters}</div>
+    </div>
+    <div class="topic-grid" data-ep-grid>
+{episode_grid(EPISODES)}
+    </div>
+    <p class="ep-empty" hidden>Brak odcinków w tej kategorii.</p>
+  </div>
+</section>
+
+{NEWSLETTER_SECTION}'''
+
+page("podcast.html", "Podcast — Kuchnia Metodyczna",
+     "Wszystkie odcinki podcastu Kuchnia Metodyczna: metodyka, praktyka i języki na widelcu. Słuchaj na Spotify lub oglądaj na YouTube.",
+     podcast)
 
 # ============================ SZKOLENIA ======================================
 topics = [
@@ -332,9 +424,10 @@ szk = f'''<section class="page-hero">
       <div class="formats">
         {formats}
       </div>
+      <a class="btn sz-cta" href="#kontakt">Zapytaj o szkolenie{ARROW}</a>
     </div>
     <div class="sz-photo">
-      <img src="img/szkolenia.webp" width="980" height="916" alt="Justyna Deczewska i Magdalena Ziółek-Wojnar">
+      <img src="img/szkolenia-2.webp" width="980" height="916" alt="Justyna Deczewska i Magdalena Ziółek-Wojnar">
       <div class="sticky-note">Praktyczna wiedza dla nauczycieli języków obcych.</div>
       <div class="laptop">{I["laptop"]}</div>
     </div>
@@ -351,20 +444,53 @@ szk = f'''<section class="page-hero">
     <div class="topic-grid">
 {topic_html}
     </div>
+    <p class="more-link"><a class="btn" href="#kontakt">Zapytaj o wybrany temat{ARROW}</a></p>
+  </div>
+</section>'''
+
+contact_section = f'''<section class="contact" id="kontakt">
+  <div class="dots" style="left:-20px;top:40px;width:150px;height:220px"></div>
+  <div class="wrap">
+    <div class="contact-card">
+      <div class="contact-intro">
+        <span class="kicker">Kontakt w sprawie szkoleń</span>
+        <h2 class="section-title">Porozmawiajmy o szkoleniach <span class="accent">dla Twojego zespołu</span></h2>
+        <p>Napisz, kim jesteście, ile osób chciałoby wziąć udział i który temat Was interesuje – albo z czym chcielibyście się zmierzyć. Odpowiemy najczęściej w ciągu kilku dni i zaproponujemy formę dopasowaną do Waszych potrzeb.</p>
+        <ul class="contact-points">
+          <li>{I["monitor"]}Online lub stacjonarnie, w całej Polsce</li>
+          <li>{I["users"]}Dla rad pedagogicznych, zespołów lektorskich i instytucji</li>
+          <li>{I["bulb"]}Temat z listy lub przygotowany specjalnie dla Was</li>
+        </ul>
+        <p class="contact-alt">Wolisz e-mail? Napisz na <a href="mailto:{CONTACT}">{CONTACT}</a>.</p>
+      </div>
+      <form class="contact-form" data-contact novalidate>
+        <div class="field"><label for="c-name">Imię i nazwisko <em>*</em></label><input id="c-name" name="full_name" type="text" autocomplete="name" maxlength="120" required></div>
+        <div class="field"><label for="c-email">E-mail <em>*</em></label><input id="c-email" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" required></div>
+        <div class="field-row">
+          <div class="field"><label for="c-org">Szkoła / instytucja</label><input id="c-org" name="org" type="text" autocomplete="organization" maxlength="200"></div>
+          <div class="field"><label for="c-phone">Telefon</label><input id="c-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="40"></div>
+        </div>
+        <div class="field"><label for="c-msg">Wiadomość <em>*</em></label><textarea id="c-msg" name="message" rows="6" maxlength="5000" required placeholder="Np. rada pedagogiczna, ok. 25 osób, interesuje nas temat grywalizacji…"></textarea></div>
+        <div class="nl-hp" aria-hidden="true"><label>Nie wypełniaj tego pola <input name="website" type="text" tabindex="-1" autocomplete="off"></label></div>
+        <button class="btn" type="submit">Wyślij wiadomość{ARROW}</button>
+        <p class="contact-note">Pola oznaczone <em>*</em> są wymagane. Dane z formularza wykorzystamy tylko po to, by odpowiedzieć na Twoją wiadomość – więcej w <a href="polityka-prywatnosci.html">Polityce prywatności</a>.</p>
+        <p class="nl-msg" role="status" aria-live="polite"></p>
+      </form>
+    </div>
   </div>
 </section>'''
 
 page("szkolenia.html", "Szkolenia — Kuchnia Metodyczna",
      "Autorskie szkolenia Kuchni Metodycznej dla szkół, szkół językowych, uczelni, zespołów lektorskich i ośrodków doskonalenia nauczycieli.",
-     szk)
+     szk + "\n\n" + contact_section)
 
 # ============================ O NAS ==========================================
 justyna = [
-    "Od lat uczę dorosłych – na uczelni, w szkołach językowych, w firmach i na kursach indywidualnych. Jestem współautorką podręczników językowych dla dorosłych i dla uczniów szkół średnich. Podczas zajęć stawiam na <mark>dobrą atmosferę, aktywność i autentyczną komunikację.</mark> Chciałabym, żeby z moich lekcji wychodziło się nie tylko z nowymi słówkami, ale też z uśmiechem i odrobinę większą wiarą we własne możliwości. Wierzę, że na dobrej lekcji uczą się wszyscy – także nauczyciel.",
+    "Od lat uczę języków – na uczelni, w szkołach językowych, w firmach i na kursach indywidualnych. Jestem współautorką podręczników językowych. Podczas zajęć stawiam na <mark>dobrą atmosferę, aktywność i autentyczną komunikację.</mark> Chciałabym, żeby z moich lekcji wychodziło się nie tylko z nowymi słówkami, ale też z uśmiechem i odrobinę większą wiarą we własne możliwości. Wierzę, że na dobrej lekcji uczą się wszyscy – także nauczyciel.",
     "Lubię szukać prostych i nieszablonowych sposobów na to, żeby <mark>język naprawdę „zadziałał” poza salą lekcyjną.</mark> Cenię zadania, które angażują, budzą ciekawość i dają poczucie, że języka można używać od pierwszych chwil, nawet jeśli nie wszystko jeszcze potrafimy powiedzieć. W nauczaniu najbardziej fascynuje mnie możliwość wejścia na chwilę w świat drugiego człowieka – i spotkania się tam poprzez język.",
 ]
 magdalena = [
-    "Od ponad 20 lat uczę języka rosyjskiego – przede wszystkim studentów i dorosłych – i nadal naprawdę uwielbiam to robić. Jestem lektorką, egzaminatorką i autorką egzaminów. <mark>Praca z ludźmi daje mi energię,</mark> a inspiracji do zajęć szukam właściwie wszędzie: w podróżach, rozmowach i codziennym życiu.",
+    "Od ponad 20 lat uczę języka rosyjskiego i nadal naprawdę uwielbiam to robić. Jestem lektorką, egzaminatorką i autorką egzaminów. <mark>Praca z ludźmi daje mi energię,</mark> a inspiracji do zajęć szukam właściwie wszędzie: w podróżach, rozmowach i codziennym życiu.",
     "Od wielu lat prowadzę szkolenia dla nauczycieli. W dydaktyce lubię eksperymentować, pracować metodą projektów i sprawdzać, co naprawdę działa w sali lekcyjnej. <mark>Fascynuje mnie AI i możliwości,</mark> jakie otwiera przed edukacją.",
     "Sama też bardzo lubię być po drugiej stronie – uczyć się, uczestniczyć w konferencjach i wyjazdach Erasmus+, poznawać nauczycieli z innych krajów i przyglądać się ich pracy. Chętnie inicjuję międzynarodową współpracę i nawiązuję kontakty, z których często rodzą się kolejne pomysły i projekty.",
     "Poza salą lekcyjną trudno mi usiedzieć w miejscu. Podróżuję, gotuję, jeżdżę na rowerze i ciągle coś wymyślam. I chyba właśnie z tej <mark>ciekawości świata</mark> najczęściej biorą się moje pomysły na kolejne zajęcia, szkolenia i projekty.",
@@ -377,8 +503,6 @@ def bio(pid, paras):
 
 onas = f'''<section class="about">
   <div class="dots" style="left:-20px;top:120px;width:200px;height:260px"></div>
-  <div class="dots" style="right:-20px;top:180px;width:180px;height:300px"></div>
-  <div class="dots" style="left:30%;top:640px;width:200px;height:200px"></div>
   <div class="wrap">
     <div class="about-head">
       <h1 class="display">O nas{burst()}</h1>
@@ -411,8 +535,9 @@ page("o-nas.html", "O nas — Kuchnia Metodyczna",
 
 # ============================ NEWSLETTER PAGES ===============================
 def fmt_date(v):
-    y, m, d = v.split("-")
-    return f"{d}.{m}.{y}"
+    date, _, rev = v.partition(".")
+    y, m, d = date.split("-")
+    return f"{d}.{m}.{y}" + (f" (wersja {rev})" if rev else "")
 
 def legal_page(filename, title, h1_accent, h1_ink, version, items, description):
     lis = "\n".join(f"        <li>{t}</li>" for t in items)
@@ -429,7 +554,7 @@ def legal_page(filename, title, h1_accent, h1_ink, version, items, description):
     <p class="legal-back"><a class="btn" href="index.html#newsletter">Zapisz się do newslettera</a></p>
   </div>
 </section>'''
-    page(filename, title, description, body)
+    page(filename, title, description, body, popup=False)
 
 M = f'<a href="mailto:{CONTACT}">{CONTACT}</a>'
 
@@ -447,15 +572,15 @@ legal_page("regulamin-newslettera.html", "Regulamin newslettera — Kuchnia Meto
 legal_page("polityka-prywatnosci.html", "Polityka prywatności — Kuchnia Metodyczna",
     "Polityka", "prywatności", POL_VERSION, [
     f"<b>Administratorki danych:</b> Magdalena Ziółek-Wojnar i Justyna Deczewska, wspólnie prowadzące projekt „Kuchnia Metodyczna”. Kontakt: {M}.",
-    "<b>Zakres danych:</b> przetwarzamy adres e-mail oraz informacje dokumentujące zapis, udzieloną zgodę i jej ewentualne wycofanie.",
-    "<b>Cel i podstawa prawna:</b> dane wykorzystujemy do obsługi bezpłatnego newslettera i wysyłania informacji o nowych odcinkach podcastu. Podstawą przetwarzania danych na potrzeby wysyłki jest zgoda (art. 6 ust. 1 lit. a RODO). Dane potwierdzające udzielenie zgody możemy przechowywać na podstawie naszego prawnie uzasadnionego interesu polegającego na wykazaniu zgodności z prawem (art. 6 ust. 1 lit. f RODO).",
-    "<b>Odbiorcy danych:</b> korzystamy z usług Google, w tym Gmaila, do obsługi poczty i newslettera. Dane mogą być przetwarzane również poza Europejskim Obszarem Gospodarczym, z zastosowaniem odpowiednich zabezpieczeń przewidzianych prawem.",
-    "<b>Czas przechowywania:</b> adres e-mail wykorzystujemy do wysyłki do chwili wycofania zgody lub zakończenia prowadzenia newslettera. Dane niezbędne do wykazania prawidłowości udzielonej zgody możemy przechowywać dłużej, przez okres potrzebny do obrony przed ewentualnymi roszczeniami.",
+    "<b>Zakres danych:</b> w przypadku newslettera przetwarzamy adres e-mail, imię (jeśli je podasz) oraz informacje dokumentujące zapis, udzieloną zgodę i jej ewentualne wycofanie. W przypadku formularza kontaktowego przetwarzamy imię i nazwisko, adres e-mail i treść wiadomości, a także – jeśli je podasz – nazwę szkoły lub instytucji i numer telefonu.",
+    "<b>Cel i podstawa prawna:</b> dane newslettera wykorzystujemy do jego obsługi i wysyłania informacji o nowych odcinkach podcastu. Podstawą przetwarzania danych na potrzeby wysyłki jest zgoda (art. 6 ust. 1 lit. a RODO). Dane potwierdzające udzielenie zgody możemy przechowywać na podstawie naszego prawnie uzasadnionego interesu polegającego na wykazaniu zgodności z prawem (art. 6 ust. 1 lit. f RODO). Dane z formularza kontaktowego wykorzystujemy, aby odpowiedzieć na wiadomość i – jeśli o to prosisz – przygotować propozycję szkolenia; podstawą jest podjęcie działań na Twoje żądanie przed zawarciem umowy (art. 6 ust. 1 lit. b RODO) oraz nasz prawnie uzasadniony interes polegający na prowadzeniu korespondencji (art. 6 ust. 1 lit. f RODO).",
+    "<b>Odbiorcy danych:</b> korzystamy z usług Google, w tym Gmaila i Arkuszy Google, do obsługi poczty, newslettera i formularza kontaktowego. Dane mogą być przetwarzane również poza Europejskim Obszarem Gospodarczym, z zastosowaniem odpowiednich zabezpieczeń przewidzianych prawem.",
+    "<b>Czas przechowywania:</b> adres e-mail wykorzystujemy do wysyłki newslettera do chwili wycofania zgody lub zakończenia prowadzenia newslettera. Dane niezbędne do wykazania prawidłowości udzielonej zgody możemy przechowywać dłużej, przez okres potrzebny do obrony przed ewentualnymi roszczeniami. Dane z formularza kontaktowego przechowujemy przez czas prowadzenia korespondencji, a następnie nie dłużej niż 12 miesięcy, chyba że dojdzie do zawarcia umowy – wtedy przez okres wymagany przepisami.",
     "<b>Twoje prawa:</b> masz prawo dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania, przenoszenia danych w przewidzianych prawem przypadkach oraz wniesienia sprzeciwu wobec przetwarzania opartego na prawnie uzasadnionym interesie. Możesz też w każdej chwili wycofać zgodę, bez wpływu na zgodność z prawem wcześniejszego przetwarzania, oraz wnieść skargę do Prezesa Urzędu Ochrony Danych Osobowych.",
-    "<b>Dobrowolność:</b> podanie adresu e-mail jest dobrowolne, ale konieczne do otrzymywania newslettera.",
-    "<b>Profilowanie:</b> nie podejmujemy wobec subskrybentów decyzji w sposób zautomatyzowany, w tym nie stosujemy profilowania.",
+    "<b>Dobrowolność:</b> podanie danych jest dobrowolne. Adres e-mail jest konieczny do otrzymywania newslettera, a imię i nazwisko, adres e-mail i treść wiadomości – do odpowiedzi na wiadomość z formularza kontaktowego.",
+    "<b>Profilowanie:</b> nie podejmujemy wobec Ciebie decyzji w sposób zautomatyzowany, w tym nie stosujemy profilowania.",
     f"<b>Współadministrowanie:</b> wspólnie ustalamy cel i zasady przetwarzania danych. Do kontaktu w sprawach danych osobowych służy adres {M}. Możesz wykonywać swoje prawa wobec każdej z nas.",
-    ], "Polityka prywatności newslettera Kuchni Metodycznej.")
+    ], "Polityka prywatności Kuchni Metodycznej: newsletter i formularz kontaktowy.")
 
 def action_page(filename, title, accent, ink, inner):
     body = f'''<section class="legal nl-action">
@@ -494,4 +619,4 @@ action_page("wypisz.html", "Wypisz się z newslettera — Kuchnia Metodyczna", "
 
 # favicon
 (ROOT / "img" / "favicon.svg").write_text(LOGO.replace(' aria-hidden="true"', ' xmlns="http://www.w3.org/2000/svg"'), encoding="utf-8")
-print("Built index, o-nas, szkolenia, regulamin-newslettera, polityka-prywatnosci, potwierdz, wypisz")
+print("Built index, podcast, o-nas, szkolenia, regulamin-newslettera, polityka-prywatnosci, potwierdz, wypisz")

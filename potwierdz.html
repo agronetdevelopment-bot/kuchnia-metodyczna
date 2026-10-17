@@ -12,8 +12,8 @@
 <meta name="theme-color" content="#f7a823">
 <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="fonts/anton-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/fonts.css?v=20261017">
-<link rel="stylesheet" href="css/style.css?v=20261017">
+<link rel="stylesheet" href="css/fonts.css?v=2026101702">
+<link rel="stylesheet" href="css/style.css?v=2026101702">
 </head>
 <body>
 <header class="site-header">
@@ -23,7 +23,7 @@
       <span class="brand-text"><b>KUCHNIA</b><span>METODYCZNA</span></span>
     </a>
     <nav class="main-nav" aria-label="Główna nawigacja">
-    <a href="index.html">PODCAST</a>
+    <a href="podcast.html">PODCAST</a>
     <a href="o-nas.html">O NAS</a>
     <a href="szkolenia.html">SZKOLENIA</a>
     </nav>
@@ -54,13 +54,15 @@
   <div class="wrap">
     <div class="footer-top">
       <a class="brand" href="index.html"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="50" fill="#f7a823"/><path fill="#fff" d="M35 16c-7 9-9 26-4 37l3 3v28a3.3 3.3 0 0 0 6.6 0V21c0-4-3.7-7.6-5.6-5z"/><path fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" d="M52 18v18M58.5 18v18M65 18v18"/><path fill="#fff" d="M50 33h17v5a8.5 8.5 0 0 1-17 0z"/><rect fill="#fff" x="55.3" y="44" width="6.4" height="43" rx="3.2"/></svg><span class="brand-text"><b>KUCHNIA</b><span>METODYCZNA</span></span></a>
-      <nav aria-label="Stopka"><a href="index.html">PODCAST</a> <a href="o-nas.html">O NAS</a> <a href="szkolenia.html">SZKOLENIA</a></nav>
+      <nav aria-label="Stopka"><a href="podcast.html">PODCAST</a> <a href="o-nas.html">O NAS</a> <a href="szkolenia.html">SZKOLENIA</a></nav>
     </div>
     <div class="footer-nl" data-nl-wrap hidden>
       <h2>Newsletter</h2>
       <p>Informacja o nowym odcinku podcastu prosto na Twoją skrzynkę &mdash; raz w miesiącu.</p>
       <form class="nl-form nl-footer" data-nl novalidate>
       <div class="nl-row">
+        <label class="sr-only" for="nl-foot-name">Imię (opcjonalnie)</label>
+        <input id="nl-foot-name" class="nl-name" name="first_name" type="text" autocomplete="given-name" placeholder="Imię (opcjonalnie)" maxlength="60">
         <label class="sr-only" for="nl-foot-email">Adres e-mail</label>
         <input id="nl-foot-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="Twój adres e-mail" maxlength="254" required>
         <button class="btn nl-submit" type="submit">Zapisz się</button>
@@ -77,8 +79,9 @@
     </div>
   </div>
 </footer>
-<script src="js/main.js?v=20261017" defer></script>
-<script src="js/config.js?v=20261017" defer></script>
-<script src="js/newsletter.js?v=20261017" defer></script>
+
+<script src="js/main.js?v=2026101702" defer></script>
+<script src="js/config.js?v=2026101702" defer></script>
+<script src="js/newsletter.js?v=2026101702" defer></script>
 </body>
 </html>
