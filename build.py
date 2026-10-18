@@ -12,6 +12,7 @@ ROOT = Path(__file__).parent
 SPOTIFY = "https://open.spotify.com/show/78JCaoAEl9yniNS0A4y9NV"
 YOUTUBE = "https://www.youtube.com/@KuchniaMetodyczna"
 INSTAGRAM = "#"  # TODO: link to Instagram profile
+PRICE_FROM = "1200 zł"   # cena szkolenia „od” — zmień tutaj, pokaże się we wszystkich miejscach
 
 # --- Icons -------------------------------------------------------------------
 def ico(body, vb="0 0 24 24"):
@@ -94,7 +95,7 @@ def header(active):
 CONTACT = "kuchniametodyczna@gmail.com"
 REG_VERSION = "2026-10-17"
 POL_VERSION = "2026-10-17.2"   # .2 = dodany formularz kontaktowy i imię
-ASSET_V = "2026101702"
+ASSET_V = "2026101801"
 
 CONSENT_TERMS = ("Akceptuję Regulamin newslettera i oświadczam, że zapoznałam/em się "
                  "z Polityką prywatności.")
@@ -328,6 +329,7 @@ home_training = f'''<section class="home-training">
           <li>{I["chat"]}Jak uruchomić grupę, która milczy</li>
           <li>{I["dice"]}Grywalizacja z sensem</li>
         </ul>
+        <p class="ht-price">Szkolenia <b>od {PRICE_FROM}</b> · cenę dopasowujemy do formy i wielkości grupy</p>
         <div class="ht-actions">
           <a class="btn" href="szkolenia.html">Zobacz tematy szkoleń{ARROW}</a>
           <a class="btn btn-ghost" href="szkolenia.html#kontakt">Porozmawiajmy</a>
@@ -379,6 +381,8 @@ page("podcast.html", "Podcast — Kuchnia Metodyczna",
      "Wszystkie odcinki podcastu Kuchnia Metodyczna: metodyka, praktyka i języki na widelcu. Słuchaj na Spotify lub oglądaj na YouTube.",
      podcast)
 
+PRICE_TAG = '<span class="price-tag"><small>Cena szkolenia</small><b>od {}</b></span>'.format(PRICE_FROM)
+
 # ============================ SZKOLENIA ======================================
 topics = [
     ("robot", "Tworzenie materiałów dydaktycznych z wykorzystaniem narzędzi AI",
@@ -424,7 +428,11 @@ szk = f'''<section class="page-hero">
       <div class="formats">
         {formats}
       </div>
-      <a class="btn sz-cta" href="#kontakt">Zapytaj o szkolenie{ARROW}</a>
+      <div class="sz-cta-row">
+        <a class="btn sz-cta" href="#kontakt">Zapytaj o szkolenie{ARROW}</a>
+        {PRICE_TAG}
+      </div>
+      <p class="price-note">Dokładną cenę ustalamy indywidualnie – zależy od formy, czasu trwania i liczby uczestników.</p>
     </div>
     <div class="sz-photo">
       <img src="img/szkolenia-2.webp" width="980" height="916" alt="Justyna Deczewska i Magdalena Ziółek-Wojnar">
@@ -434,6 +442,7 @@ szk = f'''<section class="page-hero">
     <div class="formats formats-mobile">
       {formats}
     </div>
+    <div class="sz-price-mobile">{PRICE_TAG}<p class="price-note">Dokładną cenę ustalamy indywidualnie – zależy od formy, czasu trwania i liczby uczestników.</p></div>
   </div>
 </section>
 
@@ -460,6 +469,7 @@ contact_section = f'''<section class="contact" id="kontakt">
           <li>{I["monitor"]}Online lub stacjonarnie, w całej Polsce</li>
           <li>{I["users"]}Dla rad pedagogicznych, zespołów lektorskich i instytucji</li>
           <li>{I["bulb"]}Temat z listy lub przygotowany specjalnie dla Was</li>
+          <li class="contact-price">{I["cap"]}<span>Cena szkolenia <b>od {PRICE_FROM}</b> – wycenę przygotujemy po rozmowie</span></li>
         </ul>
         <p class="contact-alt">Wolisz e-mail? Napisz na <a href="mailto:{CONTACT}">{CONTACT}</a>.</p>
       </div>
